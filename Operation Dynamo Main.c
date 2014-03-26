@@ -1,13 +1,13 @@
 /*
- *	Operation Dynamo - Rev 3 - In Progress - Update 1
+ *	Operation Dynamo - Rev 3 - In Progress - Update 2
  *
  *	Created: 22/03/2014 2:23:14 PM
  *  Author: Benjamin
  *	Group: 15
  *
  *	Change List:
- *	Added Comments to all current code that did not have them
- *	Changed formatting to a more uniform design
+ *	Changed the calibrate functions to have a global variable for step counts	
+ *	Added an Offensive_play function
  *
  */ 
 
@@ -41,6 +41,10 @@
 unsigned int InProgressStepCount;	// Turn step count
 unsigned char TurnInProgress, StepDirection;	// Turn in progress indicator , Direction indicator.
 
+uint16_t TotalStepsOffense = 0;
+
+uint16_t TotalStepsDefense = 0;
+
 void DelayTime(uint32_t Delay);
 /*
 *		Holds the process at this point of the given time in ms
@@ -63,13 +67,13 @@ void AbortTurn();
 *	Cancels the current turn, if any.
 */
 
-uint16_t Calibrate_Offense();
+void Calibrate_Offense();
 /*
 *	Moves the quarterback between the two limit sensors.
 *	Counts the steps between the two limits and returns it.
 */
 
-uint16_t Calibrate_Defense();
+void Calibrate_Defense();
 /*
 *	Moves the defender between the two limit sensors.
 *	Counts the steps between the two limits and returns it.
@@ -80,6 +84,12 @@ void LaunchBall();
 *	Lifts the solenoid and delays for launch of the balls.
 */
 
+void Offensive_Play(uint8_t RecieverOne, uint8_t RecieverTwo, uint8_t RecieverThree);
+/*
+*	Lets the system fire at three targets in succession.
+*	Can adapt to any of the possible combinations of shots.
+*/
+
 int main () {
 	DDRD = (1<<DIRECTION) | (1<<STEP) | (1<<USER_ENABLE) | (1<<THROW) | (1<<SPEED0) | (1<<SPEED1);	// Enable output pins. The remaining pins are input.
 	PORTD = (1<<THROW) | (1<<SPEED0) | (0<<SPEED1); //Default output for the device
@@ -88,7 +98,7 @@ int main () {
 	
 	sei();	//Enable global interrupts
 	
-	int TotalSteps = Calibrate_Offense();	//moves the quarterback between the two limits. Return the amount of steps between these limits.
+	Calibrate_Offense();	//moves the quarterback between the two limits.
 
 	while (1==1);	//Loop forever
 
@@ -168,7 +178,7 @@ void AbortTurn(void) {
 	TurnInProgress = DONE;			//Clears the TurnInProgress flag
 }
 
-uint16_t Calibrate_Offense() {
+void Calibrate_Offense() {
 	uint16_t Counter = 0;
 	
 	do {									// Rotate motor to CCW stop.
@@ -182,10 +192,10 @@ uint16_t Calibrate_Offense() {
 	
 	eeprom_write_word(0x00,Counter);
 	
-	return Counter;
+	TotalStepsOffense = Counter;
 }
 
-uint16_t Calibrate_Defense() {
+void Calibrate_Defense() {
 	uint16_t Counter = 0;
 	
 	do {									// Rotate motor to CCW stop.
@@ -199,7 +209,7 @@ uint16_t Calibrate_Defense() {
 	
 	eeprom_write_word(0x00,Counter);
 	
-	return Counter;
+	TotalStepsDefense = Counter;
 }
 
 void LaunchBall() {
@@ -208,6 +218,10 @@ void LaunchBall() {
 	DelayTime(500);			//Hold open for 500 ms
 	PORTD |= (1<<THROW);	//Lower solenoid
 	DelayTime(500);			//Wait for ball to leave the system
+}
+
+void Offensive_Play(uint8_t RecieverOne, uint8_t RecieverTwo, uint8_t RecieverThree) {
+	
 }
 
 ISR (TIMER0_COMPA_vect) {		
