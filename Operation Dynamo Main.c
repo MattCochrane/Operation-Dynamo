@@ -1,14 +1,13 @@
 /*
- *	Operation Dynamo - Rev 3 - In Progress - Update 2
+ *	Operation Dynamo - Rev 3 - In Progress - Update 3
  *
  *	Created: 22/03/2014 2:23:14 PM
  *  Author: Benjamin
  *	Group: 15
  *
  *	Change List:
- *	Changed the calibrate functions to have a global variable for step counts	
- *	Added an Offensive_play function
- *
+ *	Removed all step counting
+ *	Changed from percent to literal step taking
  */ 
 
 #include <avr/io.h>
@@ -37,13 +36,25 @@
 #define CW  0	//Defines CW for easy use
 #define CCW 1	//Defines CCW for easy use
 
+//Define Receivers
+#define L2 0
+#define R2 1
+#define L5 2
+#define R5 3
+#define L6 4
+#define R6 5
+
+//Global Constants
+const int L2_LOC = 243;
+const int R2_LOC = 143;
+const int L5_LOC = 252;
+const int R5_LOC = 181;
+const int L6_LOC = 218;
+const int R6_LOC = 158;
+
 //Global Variables
 unsigned int InProgressStepCount;	// Turn step count
 unsigned char TurnInProgress, StepDirection;	// Turn in progress indicator , Direction indicator.
-
-uint16_t TotalStepsOffense = 0;
-
-uint16_t TotalStepsDefense = 0;
 
 void DelayTime(uint32_t Delay);
 /*
@@ -98,7 +109,7 @@ int main () {
 	
 	sei();	//Enable global interrupts
 	
-	Calibrate_Offense();	//moves the quarterback between the two limits.
+	Calibrate_Offense();	//moves the quarterback between the two limits. Return the amount of steps between these limits.
 
 	while (1==1);	//Loop forever
 
@@ -179,37 +190,23 @@ void AbortTurn(void) {
 }
 
 void Calibrate_Offense() {
-	uint16_t Counter = 0;
-	
 	do {									// Rotate motor to CCW stop.
 		while( Turn_Offense(1, CCW) == 1);	// Rotate motor 1 step.
 	} while (CCW_LIM == 0);
 	
 	do {									// Rotate motor to CW stop.
-		while( Turn_Offense(1, CW) == 1);	// Rotate motor 1 step.
-		Counter++;							// Count Steps of span.
+		while( Turn_Offense(1, CW) == 1);	// Rotate motor 1 step.					
 	} while (CW_LIM == 0);
-	
-	eeprom_write_word(0x00,Counter);
-	
-	TotalStepsOffense = Counter;
 }
 
 void Calibrate_Defense() {
-	uint16_t Counter = 0;
-	
 	do {									// Rotate motor to CCW stop.
 		while( Turn_Defense(1, CCW) == 1);	// Rotate motor 1 step.
 	} while (CCW_LIM == 0);
 	
 	do {									// Rotate motor to CW stop.
 		while( Turn_Defense(1, CW) == 1);	// Rotate motor 1 step.
-		Counter++;							// Count Steps of span.
 	} while (CW_LIM == 0);
-	
-	eeprom_write_word(0x00,Counter);
-	
-	TotalStepsDefense = Counter;
 }
 
 void LaunchBall() {
