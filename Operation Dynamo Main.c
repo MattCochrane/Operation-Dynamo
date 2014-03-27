@@ -1,13 +1,14 @@
 /*
- *	Operation Dynamo - Rev 3 - In Progress - Update 3
+ *	Operation Dynamo - Rev 3 - In Progress - Update 4
  *
  *	Created: 22/03/2014 2:23:14 PM
  *  Author: Benjamin
  *	Group: 15
  *
  *	Change List:
- *	Removed all step counting
- *	Changed from percent to literal step taking
+ *	Offensive_Play now populated
+ *
+ *
  */ 
 
 #include <avr/io.h>
@@ -36,21 +37,13 @@
 #define CW  0	//Defines CW for easy use
 #define CCW 1	//Defines CCW for easy use
 
-//Define Receivers
-#define L2 0
-#define R2 1
-#define L5 2
-#define R5 3
-#define L6 4
-#define R6 5
-
 //Global Constants
-const int L2_LOC = 243;
-const int R2_LOC = 143;
-const int L5_LOC = 252;
-const int R5_LOC = 181;
-const int L6_LOC = 218;
-const int R6_LOC = 158;
+const int L2 = 243;
+const int R2 = 143;
+const int L5 = 252;
+const int R5 = 181;
+const int L6 = 218;
+const int R6 = 158;
 
 //Global Variables
 unsigned int InProgressStepCount;	// Turn step count
@@ -218,7 +211,22 @@ void LaunchBall() {
 }
 
 void Offensive_Play(uint8_t RecieverOne, uint8_t RecieverTwo, uint8_t RecieverThree) {
+	int16_t SecondStep = RecieverTwo - RecieverOne;
+	int16_t ThirdStep = RecieverThree - RecieverTwo;
 	
+	while (Turn_Offense(RecieverOne,CCW) == 1);
+	
+	if (SecondStep < 0) {
+		while (Turn_Offense(abs(SecondStep),CW) == 1);
+	} else {
+		while (Turn_Offense(SecondStep,CCW) == 1);
+	}
+	
+	if (ThirdStep < 0) {
+		while (Turn_Offense(abs(ThirdStep),CCW) == 1);
+	} else {
+		while (Turn_Offense(ThirdStep,CW) == 1);
+	}
 }
 
 ISR (TIMER0_COMPA_vect) {		
