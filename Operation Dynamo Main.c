@@ -1,14 +1,15 @@
 /*
- *	Operation Dynamo - Rev 3 - In Progress - Update 4
+ *	Operation Dynamo - Rev 3 - In Progress - Update 5
  *
  *	Created: 22/03/2014 2:23:14 PM
  *  Author: Benjamin
  *	Group: 15
  *
  *	Change List:
- *	Offensive_Play now populated
- *
- *
+ *	Offensive_Play now functional
+ *	Added launch ball to offensive_play
+ *	Issue of delay not working, added more delay to first shot of offensive play
+ *	
  */ 
 
 #include <avr/io.h>
@@ -103,6 +104,12 @@ int main () {
 	sei();	//Enable global interrupts
 	
 	Calibrate_Offense();	//moves the quarterback between the two limits. Return the amount of steps between these limits.
+	
+	Offensive_Play(L2,R2,L5);
+	
+	Calibrate_Offense();
+	
+	Offensive_Play(L5,R5,L6);
 
 	while (1==1);	//Loop forever
 
@@ -203,7 +210,7 @@ void Calibrate_Defense() {
 }
 
 void LaunchBall() {
-	DelayTime(100);			//Wait for system to steady itself
+	DelayTime(1000);			//Wait for system to steady itself
 	PORTD &= ~(1<<THROW);	//Lift the solenoid
 	DelayTime(500);			//Hold open for 500 ms
 	PORTD |= (1<<THROW);	//Lower solenoid
@@ -216,17 +223,25 @@ void Offensive_Play(uint8_t RecieverOne, uint8_t RecieverTwo, uint8_t RecieverTh
 	
 	while (Turn_Offense(RecieverOne,CCW) == 1);
 	
+	DelayTime(1000);
+	
+	LaunchBall();
+	
 	if (SecondStep < 0) {
 		while (Turn_Offense(abs(SecondStep),CW) == 1);
 	} else {
 		while (Turn_Offense(SecondStep,CCW) == 1);
 	}
 	
+	LaunchBall();
+	
 	if (ThirdStep < 0) {
 		while (Turn_Offense(abs(ThirdStep),CCW) == 1);
 	} else {
 		while (Turn_Offense(ThirdStep,CW) == 1);
 	}
+	
+	LaunchBall();
 }
 
 ISR (TIMER0_COMPA_vect) {		
